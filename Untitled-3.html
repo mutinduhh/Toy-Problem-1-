@@ -1,0 +1,73 @@
+<html>
+<body>
+    <h2>Net Salary Calculator</h2>
+    <p>Enter the basic salary:</p>
+    <input type="number" id="basicSalary" step="0.01" min="0" max="1000000">
+    <p>Enter the benefits:</p>
+    <input type="number" id="benefits" step="0.01" min="0" max="1000000">
+    <button onclick="calculateNetSalary()">Calculate Net Salary</button>
+    <p>Gross salary: <span id="grossSalary"></span></p>
+    <p>Payee: <span id="payee"></span></p>
+    <p>NHIF Deductions: <span id="nhifDeductions"></span></p>
+    <p>NSSF Deductions: <span id="nssfDeductions"></span></p>
+    <p>Net Salary: <span id="netSalary"></span></p>
+
+    <script>
+        // KRA tax rates
+        const taxRates = [
+            { threshold: 0, rate: 0.1 },
+            { threshold: 24000, rate: 0.1 },
+            { threshold: 32330, rate: 0.15 },
+            { threshold: 40000, rate: 0.25 },
+            { threshold: 48000, rate: 0.3 },
+            { threshold: Infinity, rate: 0.35 }
+        ];
+
+        // NHIF rates
+        const nhifRate = 150;
+        const nhifLowerBound = 0;
+        const nhifUpperBound = 5000;
+
+        // NSSF rates
+        const nssfLowerBound = 6000;
+        const nssfRate = 0.06;
+
+        function calculateNetSalary() {
+            // Get the basic salary and benefits from the input fields
+            const basicSalary = document.getElementById("basicSalary").value;
+            const benefits = document.getElementById("benefits").value;
+
+            // Calculate the gross salary and tax payable
+            const grossSalary = parseFloat(basicSalary) + parseFloat(benefits);
+            let taxPayable = 0;
+
+            // Calculate the tax payable using the KRA tax rates
+            for (const taxRate of taxRates) {
+                if (grossSalary <= taxRate.threshold) {
+                    break;
+                }
+                taxPayable += (taxRate.threshold - taxPayable) * taxRate.rate;
+            }
+
+            // Calculate the NHIF deductions
+            let nhifDeductions = grossSalary > nhifUpperBound ? nhifUpperBound * nhifRate : nhifLowerBound * nhifRate;
+            if (grossSalary <= nhifLowerBound) {
+                nhifDeductions = 0;
+            }
+
+            // Calculate the NSSF deductions
+            const nssfDeductions = grossSalary > nssfLowerBound ? grossSalary * nssfRate : 0;
+
+            // Calculate the net salary
+            const netSalary = grossSalary - taxPayable - nhifDeductions - nssfDeductions;
+
+            // Display the results
+            document.getElementById("grossSalary").innerHTML = grossSalary.toFixed(2);
+            document.getElementById("payee").innerHTML = taxPayable.toFixed(2);
+            document.getElementById("nhifDeductions").innerHTML = nhifDeductions.toFixed(2);
+            document.getElementById("nssfDeductions").innerHTML = nssfDeductions.toFixed(2);
+            document.getElementById("netSalary").innerHTML = netSalary.toFixed(2);
+        }
+    </script>
+</body>
+</html>
